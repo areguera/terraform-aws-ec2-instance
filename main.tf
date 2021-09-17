@@ -120,6 +120,15 @@ resource "aws_instance" "this" {
   tenancy                              = var.tenancy
   host_id                              = var.host_id
 
+  provisioner "local-exec" {
+    command = "ANSIBLE_HOST_KEY_CHECKING=false ansible-playbook -u centos -i '${self.public_dns},' ./provisioners/${replace(self.tags.Name, "/-[[:digit:]]+$/", "")}.yml"
+  }
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = "ANSIBLE_HOST_KEY_CHECKING=false ansible-playbook -u centos -i '${self.public_dns},' ./provisioners/${replace(self.tags.Name, "/-[[:digit:]]+$/", "")}-when-destroy.yml"
+  }
+
   credit_specification {
     cpu_credits = local.is_t_instance_type ? var.cpu_credits : null
   }
